@@ -17,13 +17,23 @@ class FlightListViewModel : ViewModel(), RequestsManager.RequestListener {
 
 
     val flightListLiveData: MutableLiveData<List<FlightModel>> = MutableLiveData()
+    val trackLiveData: MutableLiveData<List<TrackModel>> = MutableLiveData()
     val isLoadingLiveData: MutableLiveData<Boolean> = MutableLiveData()
     private val selectedFlightNameLiveData: MutableLiveData<String> = MutableLiveData()
+    private val selectedIcaoLiveData: MutableLiveData<String> = MutableLiveData()
+    private val selectedArrivalTimeLiveData: MutableLiveData<Long> = MutableLiveData()
+
+    fun getSelectedArrivalTimeLiveData(): LiveData<Long> {
+        return selectedArrivalTimeLiveData
+    }
+
+    fun getSelectedIcaoLiveData(): LiveData<String> {
+        return selectedIcaoLiveData
+    }
 
     fun getSelectedFlightNameLiveData(): LiveData<String> {
         return selectedFlightNameLiveData
     }
-
 
     fun search(icao: String, isArrival: Boolean, begin: Long, end: Long) {
 
@@ -60,6 +70,42 @@ class FlightListViewModel : ViewModel(), RequestsManager.RequestListener {
         // SearchFlightsAsyncTask(this).execute(searchDataModel)
     }
 
+    fun getSelectedFlightInfo(icao: String, time: Long) {
+        val searchTrackDataModel = SearchTrackDataModel(
+            icao,
+            time
+        )
+
+        val baseUrl: String = "https://opensky-network.org/api/tracks/all"
+
+        viewModelScope.launch {
+            //start loading
+            isLoadingLiveData.value = true
+            val result = withContext(Dispatchers.IO) {
+                RequestsManager.getSuspended(baseUrl, getRequestTrackParams(searchTrackDataModel))
+            }
+            //end loading
+            isLoadingLiveData.value = false
+            if (result == null) {
+                Log.e("Request", "problem")
+
+            } else {
+                val track = Utils.getTrackFromString(result)
+                Log.d("models list", track.toString())
+                trackLiveData.value = track
+            }
+        }
+    }
+
+    private fun getRequestTrackParams(searchModel: SearchTrackDataModel?): Map<String, String>? {
+        val params = HashMap<String, String>()
+        if (searchModel != null) {
+            params["icao24"] = searchModel.icao
+            params["time"] = searchModel.time.toString()
+        }
+        return params
+    }
+
     private fun getRequestParams(searchModel: SearchDataModel?): Map<String, String>? {
         val params = HashMap<String, String>()
         if (searchModel != null) {
@@ -80,5 +126,13 @@ class FlightListViewModel : ViewModel(), RequestsManager.RequestListener {
 
     fun updateSelectedFlightName(flightName: String) {
         selectedFlightNameLiveData.value = flightName
+    }
+
+    fun updateSelectedFlightArrival(flightArrival: Long) {
+        selectedArrivalTimeLiveData.value = flightArrival
+    }
+
+    fun updateSelectedIcao(icao: String) {
+        selectedIcaoLiveData.value = icao
     }
 }

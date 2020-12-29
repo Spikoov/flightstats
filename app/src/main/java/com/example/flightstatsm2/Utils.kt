@@ -2,7 +2,6 @@ package com.example.flightstatsm2
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.JsonArray
@@ -13,7 +12,6 @@ import java.io.*
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.logging.Handler
 import kotlin.collections.ArrayList
 
 
@@ -120,6 +118,16 @@ class Utils private constructor() {
                 flightModelList.add(Gson().fromJson(flightJson.asJsonObject, FlightModel::class.java))
             }
             return flightModelList
+        }
+
+        fun getTrackFromString(arrayAsString: String): List<TrackModel>{
+            val trackJsonArray = convertStringToJsonArray(arrayAsString)
+            val trackModelList = ArrayList<TrackModel>()
+            for(trackJson in trackJsonArray){
+                trackModelList.add(Gson().fromJson(trackJson.asJsonObject, TrackModel::class.java))
+            }
+            return trackModelList
+            // TODO : parse path array
         }
 
         private fun convertStringToJsonArray(arrayAsString: String): JsonArray{
