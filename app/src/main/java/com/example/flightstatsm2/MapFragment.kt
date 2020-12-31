@@ -1,15 +1,15 @@
 package com.example.flightstatsm2
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.flight_cell.*
 import kotlinx.android.synthetic.main.fragment_flight_detail.*
@@ -63,12 +63,23 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
 
         mapView.getMapAsync(this)
 
+        trackViewModel.isLoadingLiveData.observe(this, {
+            if (it) {
+                progressBarFrame.visibility = View.VISIBLE
+                details_button.visibility = View.INVISIBLE
+            } else {
+                progressBarFrame.visibility = View.INVISIBLE
+                details_button.visibility = View.VISIBLE
+            }
+        })
+
         // Inflate the layout for this fragment
         return myView
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+        map.uiSettings.setAllGesturesEnabled(false)
         map.setOnMapLoadedCallback(this)
     }
 
@@ -76,9 +87,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
         trackViewModel.trackLiveData.observe(this, {
             if(trackViewModel.isLoadingLiveData.value == false) {
                 map.clear()
+                map.uiSettings.setAllGesturesEnabled(true)
 
                 //marker of departure airport
-                map.addMarker(
+                val departureMarker = map.addMarker(
                     MarkerOptions()
                         .position(
                             LatLng(
@@ -86,10 +98,12 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
                                 it.path.first().asJsonArray.get(2).asDouble
                             )
                         )
+                        .draggable(false)
+                        .icon(BitmapDescriptorFactory.fromBitmap(generateMarkerIcon(R.drawable.departure)))
                 )
 
                 //marker of arrival airport
-                map.addMarker(
+                val arrivalMarker = map.addMarker(
                     MarkerOptions()
                         .position(
                             LatLng(
@@ -97,6 +111,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
                                 it.path.last().asJsonArray.get(2).asDouble
                             )
                         )
+                        .draggable(false)
+                        .icon(BitmapDescriptorFactory.fromBitmap(generateMarkerIcon(R.drawable.arrival)))
                 )
 
                 // draw path line
@@ -112,27 +128,25 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
                                 p.second.asJsonArray.get(2).asDouble
                             )
                         )
+                        .color(0xff0000ff.toInt())
                     )
                 }
 
                 //moving camera
-                map.animateCamera(
-                    CameraUpdateFactory.newLatLngBounds(
-                        LatLngBounds(
-                            LatLng(
-                                it.path.first().asJsonArray.get(1).asDouble,
-                                it.path.first().asJsonArray.get(2).asDouble
-                            ),
-                            LatLng(
-                                it.path.last().asJsonArray.get(1).asDouble,
-                                it.path.last().asJsonArray.get(2).asDouble
-                            )
-                        ),
-                        400
-                    )
-                )
+                val builder : LatLngBounds.Builder = LatLngBounds.Builder()
+                builder.include(departureMarker.position)
+                builder.include(arrivalMarker.position)
+
+                val bounds : LatLngBounds = builder.build()
+
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400))
             }
         })
+    }
+
+    private fun generateMarkerIcon(drawable: Int) : Bitmap {
+        val bitmap = BitmapFactory.decodeResource(resources, drawable)
+        return Bitmap.createScaledBitmap(bitmap, 150, 150, false)
     }
 
     companion object {
