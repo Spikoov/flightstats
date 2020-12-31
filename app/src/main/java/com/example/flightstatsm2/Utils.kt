@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import org.apache.commons.io.IOUtils
 import org.json.JSONArray
@@ -120,14 +121,21 @@ class Utils private constructor() {
             return flightModelList
         }
 
-        fun getTrackFromString(arrayAsString: String): List<TrackModel>{
-            val trackJsonArray = convertStringToJsonArray(arrayAsString)
-            val trackModelList = ArrayList<TrackModel>()
-            for(trackJson in trackJsonArray){
-                trackModelList.add(Gson().fromJson(trackJson.asJsonObject, TrackModel::class.java))
-            }
+        fun getTrackFromString(arrayAsString: String): TrackModel{
+            val trackJsonArray = convertStringToJsonObject(arrayAsString)
+            val trackModelList = TrackModel(
+                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("icao24").asString,
+                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("startTime").asLong,
+                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("endTime").asLong,
+                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("callsign").asString,
+                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("path").asJsonArray,
+            )
             return trackModelList
-            // TODO : parse path array
+        }
+
+        private fun convertStringToJsonObject(arrayAsString: String): JsonObject{
+            val jsonElement = JsonParser.parseString(arrayAsString)
+            return jsonElement.asJsonObject
         }
 
         private fun convertStringToJsonArray(arrayAsString: String): JsonArray{

@@ -1,17 +1,21 @@
 package com.example.flightstatsm2
 
 import android.os.Bundle
-import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.flight_cell.*
 import kotlinx.android.synthetic.main.fragment_flight_detail.*
+import kotlinx.android.synthetic.main.fragment_flight_list.*
+import kotlinx.android.synthetic.main.fragment_map.*
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -23,11 +27,11 @@ private const val ARG_PARAM2 = "param2"
  * Use the [MapFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class MapFragment : Fragment(), OnMapReadyCallback, RequestsManager.RequestListener, GoogleMap.OnMapLoadedCallback {
+class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
 
     private lateinit var viewModel: FlightListViewModel
+    private lateinit var trackViewModel: TrackViewModel
 
-    private lateinit var mapView: MapView
     private lateinit var map: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,26 +47,24 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestsManager.RequestListe
     ): View? {
 
         viewModel = ViewModelProvider(requireActivity()).get(FlightListViewModel::class.java)
+        trackViewModel = ViewModelProvider(requireActivity()).get(TrackViewModel::class.java)
 
-        //val flightName: String = viewModel.getSelectedFlightNameLiveData().value!!
-        viewModel.getSelectedFlightInfo(viewModel.getSelectedIcaoLiveData().value!!, viewModel.getSelectedArrivalTimeLiveData().value!!)
-        viewModel.trackLiveData.observe(this, {
-            //Log.e("path", it)
-            for (i in it){
-                Log.e("path", i.path.toString())
-            }
-        })
+        val myView : View = inflater.inflate(R.layout.fragment_map, container, false)
 
-        // Inflate the layout for this fragment
-        val rootView = inflater.inflate(R.layout.fragment_map, container, false)
+        val mapView = myView.findViewById(R.id.myMapView) as MapView
 
-        mapView = rootView.findViewById(R.id.mapView) as MapView
+        trackViewModel.search(
+            viewModel.getSelectedIcaoLiveData().value!!,
+            viewModel.getSelectedArrivalTimeLiveData().value!!
+        )
+
         mapView.onCreate(savedInstanceState)
         mapView.onResume()
 
         mapView.getMapAsync(this)
 
-        return rootView
+        // Inflate the layout for this fragment
+        return myView
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -71,7 +73,66 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestsManager.RequestListe
     }
 
     override fun onMapLoaded() {
+        trackViewModel.trackLiveData.observe(this, {
+            if(trackViewModel.isLoadingLiveData.value == false) {
+                map.clear()
 
+                //marker of departure airport
+                map.addMarker(
+                    MarkerOptions()
+                        .position(
+                            LatLng(
+                                it.path.first().asJsonArray.get(1).asDouble,
+                                it.path.first().asJsonArray.get(2).asDouble
+                            )
+                        )
+                )
+
+                //marker of arrival airport
+                map.addMarker(
+                    MarkerOptions()
+                        .position(
+                            LatLng(
+                                it.path.last().asJsonArray.get(1).asDouble,
+                                it.path.last().asJsonArray.get(2).asDouble
+                            )
+                        )
+                )
+
+                // draw path line
+                for(p in it.path.zipWithNext()){
+                    map.addPolyline(PolylineOptions()
+                        .add(
+                            LatLng(
+                                p.first.asJsonArray.get(1).asDouble,
+                                p.first.asJsonArray.get(2).asDouble
+                            ),
+                            LatLng(
+                                p.second.asJsonArray.get(1).asDouble,
+                                p.second.asJsonArray.get(2).asDouble
+                            )
+                        )
+                    )
+                }
+
+                //moving camera
+                map.animateCamera(
+                    CameraUpdateFactory.newLatLngBounds(
+                        LatLngBounds(
+                            LatLng(
+                                it.path.first().asJsonArray.get(1).asDouble,
+                                it.path.first().asJsonArray.get(2).asDouble
+                            ),
+                            LatLng(
+                                it.path.last().asJsonArray.get(1).asDouble,
+                                it.path.last().asJsonArray.get(2).asDouble
+                            )
+                        ),
+                        400
+                    )
+                )
+            }
+        })
     }
 
     companion object {
@@ -89,13 +150,5 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestsManager.RequestListe
             MapFragment().apply {
 
             }
-    }
-
-    override fun onRequestSuccess(result: String?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onRequestFailed() {
-        TODO("Not yet implemented")
     }
 }
