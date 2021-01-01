@@ -23,6 +23,7 @@
         android:background="@color/colorPrimary"
         android:text="@string/details"
         android:textColor="#FFFFFF"
+        android:onClick="onDetailsButtonClick"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/guideline2" />
