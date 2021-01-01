@@ -26,14 +26,14 @@ class FlightListActivity : AppCompatActivity() {
             intent.getLongExtra("end", 0)
         )
 
-        viewModel.getSelectedFlightNameLiveData().observe(this, {
+        viewModel.getSelectedFlightLiveData().observe(this, {
             val mapFragment: MapFragment = MapFragment.newInstance()
             switchFragment(mapFragment)
         })
 
     }
 
-    fun switchFragment(newFragment : Fragment){
+    private fun switchFragment(newFragment : Fragment){
         val isMobile = detail_container == null
 
         //switch fragment

@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.fragment_flight_list.*
 import kotlinx.android.synthetic.main.fragment_map.*
 
 
-// TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -55,8 +54,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
         val mapView = myView.findViewById(R.id.myMapView) as MapView
 
         trackViewModel.search(
-            viewModel.getSelectedIcaoLiveData().value!!,
-            viewModel.getSelectedArrivalTimeLiveData().value!!
+            viewModel.getSelectedFlightLiveData().value!!.icao24,
+            viewModel.getSelectedFlightLiveData().value!!.lastSeen
         )
 
         mapView.onCreate(savedInstanceState)
@@ -140,7 +139,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
 
                 val bounds : LatLngBounds = builder.build()
 
-                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 400))
+                map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200))
             }
         })
     }
@@ -159,7 +158,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMapLoadedCallbac
          * @param param2 Parameter 2.
          * @return A new instance of fragment MapFragment.
          */
-        // TODO: Rename and change types and number of parameters
+
         @JvmStatic
         fun newInstance() =
             MapFragment().apply {

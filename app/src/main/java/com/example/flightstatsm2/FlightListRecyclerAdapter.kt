@@ -15,7 +15,7 @@ class FlightListRecyclerAdapter : RecyclerView.Adapter<FlightListRecyclerAdapter
     var onItemClickListener : OnItemClickListener? = null
 
     interface OnItemClickListener{
-        fun onItemClicked(flightName : String, icao: String, arrival: Long)
+        fun onItemClicked(selectedFlight : FlightModel)
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -35,6 +35,6 @@ class FlightListRecyclerAdapter : RecyclerView.Adapter<FlightListRecyclerAdapter
         Log.i("RECYCLER", "onBindViewHolder")
         val myCell = holder.itemView as FlightInfoCell
         myCell.bindData(flightList!![position])
-        myCell.setOnClickListener { onItemClickListener?.onItemClicked(flightList!![position].callsign, flightList!![position].icao24, flightList!![position].lastSeen) }
+        myCell.setOnClickListener { onItemClickListener?.onItemClicked(flightList!![position]) }
     }
 }

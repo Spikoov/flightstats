@@ -1,6 +1,7 @@
 package com.example.flightstatsm2
 
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,20 +19,11 @@ class FlightListViewModel : ViewModel(), RequestsManager.RequestListener {
 
     val flightListLiveData: MutableLiveData<List<FlightModel>> = MutableLiveData()
     val isLoadingLiveData: MutableLiveData<Boolean> = MutableLiveData()
-    private val selectedFlightNameLiveData: MutableLiveData<String> = MutableLiveData()
-    private val selectedIcaoLiveData: MutableLiveData<String> = MutableLiveData()
-    private val selectedArrivalTimeLiveData: MutableLiveData<Long> = MutableLiveData()
 
-    fun getSelectedArrivalTimeLiveData(): LiveData<Long> {
-        return selectedArrivalTimeLiveData
-    }
+    private val selectedFlightLiveData: MutableLiveData<FlightModel> = MutableLiveData()
 
-    fun getSelectedIcaoLiveData(): LiveData<String> {
-        return selectedIcaoLiveData
-    }
-
-    fun getSelectedFlightNameLiveData(): LiveData<String> {
-        return selectedFlightNameLiveData
+    fun getSelectedFlightLiveData(): LiveData<FlightModel>{
+        return selectedFlightLiveData
     }
 
     fun search(icao: String, isArrival: Boolean, begin: Long, end: Long) {
@@ -80,22 +72,15 @@ class FlightListViewModel : ViewModel(), RequestsManager.RequestListener {
     }
 
     override fun onRequestSuccess(result: String?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onRequestFailed() {
-        TODO("Not yet implemented")
+
     }
 
-    fun updateSelectedFlightName(flightName: String) {
-        selectedFlightNameLiveData.value = flightName
+    fun updateSelectedFlightLiveData(selectedFlight: FlightModel) {
+        selectedFlightLiveData.value = selectedFlight
     }
 
-    fun updateSelectedFlightArrival(flightArrival: Long) {
-        selectedArrivalTimeLiveData.value = flightArrival
-    }
-
-    fun updateSelectedIcao(icao: String) {
-        selectedIcaoLiveData.value = icao
-    }
 }

@@ -121,16 +121,17 @@ class Utils private constructor() {
             return flightModelList
         }
 
-        fun getTrackFromString(arrayAsString: String): TrackModel{
-            val trackJsonArray = convertStringToJsonObject(arrayAsString)
-            val trackModelList = TrackModel(
-                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("icao24").asString,
-                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("startTime").asLong,
-                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("endTime").asLong,
-                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("callsign").asString,
-                Gson().fromJson(trackJsonArray, JsonObject::class.java).get("path").asJsonArray,
+        fun getStateFromString(arrayAsString: String): StateModel{
+            val stateJsonArray = convertStringToJsonObject(arrayAsString)
+            return Gson().fromJson(
+                stateJsonArray,
+                StateModel::class.java
             )
-            return trackModelList
+        }
+
+        fun getTrackFromString(arrayAsString: String): TrackModel{
+            val trackJsonObject = convertStringToJsonObject(arrayAsString)
+            return Gson().fromJson(trackJsonObject, TrackModel::class.java)
         }
 
         private fun convertStringToJsonObject(arrayAsString: String): JsonObject{

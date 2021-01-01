@@ -53,10 +53,10 @@ class TrackViewModel : ViewModel(), RequestsManager.RequestListener {
     }
 
     override fun onRequestSuccess(result: String?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun onRequestFailed() {
-        TODO("Not yet implemented")
+
     }
 }
