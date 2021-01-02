@@ -48,8 +48,6 @@ class FlightDetailFragment : Fragment(), FlightListRecyclerAdapter.OnItemClickLi
         )
         detailViewModel.searchPreviousFlights(viewModel.getSelectedFlightLiveData().value!!.icao24)
 
-        // TODO: 01/01/21 voir si il y  a assez de données pour cet écran (ou voir pour mettre un sélectionneur de temps et display sur une map)
-
         detailViewModel.stateLiveData.observe(this, {
             val states = it.states.get(0).asJsonArray
             flight_name.text = states.get(1).asString
